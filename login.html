@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sesión — FixMyFreedom</title>
+  <meta name="description" content="Accede a tu cuenta de FixMyFreedom para ver tus avisos y gestionar tu plan.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="logo-m" viewBox="0 0 892 814">
+      <polygon points="0,0 446,348 892,0 892,198 446,548 0,198"/>
+      <polygon points="0,285 384,586 384,770 146,581 146,814 0,814"/>
+      <polygon points="892,285 508,586 508,770 746,581 746,814 892,814"/>
+    </symbol>
+  </svg>
+
+  <div class="auth">
+    <aside class="auth__side">
+      <svg class="auth__mark" aria-hidden="true"><use href="#logo-m"/></svg>
+      <a class="brand" href="index.html" aria-label="FixMyFreedom, inicio">
+        <svg class="brand__mark" aria-hidden="true"><use href="#logo-m"/></svg>
+        <span class="brand__name">FixMyFreedom</span>
+      </a>
+      <div class="auth__quote">
+        <h1>Tus avisos te esperan aquí.</h1>
+        <p>Consulta las últimas instrucciones de tu plan, cambia los canales donde las recibes o gestiona tu suscripción.</p>
+      </div>
+    </aside>
+
+    <main class="auth__main">
+      <div class="auth__card">
+        <h2>Iniciar sesión</h2>
+        <p>Entra con el correo electrónico de tu cuenta.</p>
+
+        <form class="auth__form" data-demo-form data-demo-message="Acceso de demostración: todavía no hay cuentas, así que no se ha iniciado sesión." novalidate>
+          <div class="field">
+            <label for="l-email">Correo electrónico</label>
+            <input id="l-email" name="correo" type="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="l-pass">Contraseña</label>
+            <input id="l-pass" name="contrasena" type="password" autocomplete="current-password" required>
+          </div>
+          <div class="auth__row">
+            <label><input type="checkbox" name="recordar"> Recordarme</label>
+            <a href="#" data-demo-link>¿Has olvidado tu contraseña?</a>
+          </div>
+          <button class="btn btn--grape" type="submit">Iniciar sesión</button>
+          <p class="form__status" role="status" data-status></p>
+        </form>
+
+        <p class="auth__alt">¿Todavía no tienes cuenta? <a href="index.html#precios">Elige un plan</a></p>
+        <a class="auth__back" href="index.html">Volver a la página principal</a>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
