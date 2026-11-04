@@ -492,6 +492,37 @@ a { color: inherit; }
 .footer__legal { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; margin-top: 1.25rem; font-size: var(--fs-sm); }
 .footer__legal a { color: var(--text-dim); text-underline-offset: 3px; }
 
+/* ---------- Cuentas y suscripción ---------- */
+.form__error { font-size: 0.95rem; font-weight: 600; color: #a3263b; }
+.ficha__aside .form__error { color: #ffc9d2; }
+.ficha__aside .form__status { color: var(--paper); }
+.field__hint { font-weight: 400; color: var(--text-dim-dark); }
+.btn[disabled] { opacity: 0.7; cursor: progress; }
+.btn--outline-dark { background: transparent; color: var(--ink); border-color: #cfc3d2; }
+.btn--outline-dark:hover { border-color: var(--grape); color: var(--grape); }
+.suscribir { display: grid; gap: 1rem; margin-top: auto; padding-top: 1.75rem; }
+.acepto { display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.92rem; line-height: 1.5; cursor: pointer; }
+.acepto input { flex: none; width: 20px; height: 20px; margin-top: 0.15rem; accent-color: var(--amber); }
+.aviso-cuenta { margin-top: 1.5rem; color: var(--text-dim); font-size: 0.95rem; }
+.aviso-cuenta a { color: var(--amber); font-weight: 600; text-underline-offset: 3px; }
+.form-inline { display: inline-grid; gap: 0.4rem; }
+
+.cuenta__lista { display: grid; gap: 1.25rem; margin-top: 2rem; }
+.cuenta__item {
+  display: grid; grid-template-columns: 1fr auto; gap: 1rem 2rem; align-items: center;
+  padding: 1.5rem; border: 1px solid var(--line-light); border-radius: var(--radius);
+}
+.cuenta__item h3 { font-size: var(--fs-md); font-stretch: 108%; }
+.cuenta__item p { margin-top: 0.35rem; color: var(--text-dim-dark); font-size: 0.95rem; }
+.cuenta__acciones { display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: flex-end; }
+.estado { display: inline-block; margin-left: 0.6rem; padding: 0.15rem 0.55rem; border-radius: 4px; font-size: var(--fs-sm); font-weight: 600; vertical-align: middle; }
+.estado--activa { background: var(--grape); color: var(--paper); }
+.estado--impagada, .estado--incompleta { background: #ece6ee; color: var(--grape); }
+.estado--cancelada { background: transparent; color: var(--text-dim-dark); box-shadow: inset 0 0 0 1.5px #cfc3d2; }
+.cuenta__pie { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2.5rem; }
+.vacio { margin-top: 2rem; padding: 2rem; border-radius: var(--radius); background: #f5f1f6; }
+.vacio p { margin-top: 0.5rem; color: var(--text-dim-dark); }
+
 /* ---------- Adaptación a pantallas ---------- */
 @media (max-width: 1020px) {
   .hero__inner { grid-template-columns: 1fr; align-items: start; }
@@ -519,6 +550,8 @@ a { color: inherit; }
   .split { grid-template-columns: 1fr; }
   .contact__grid { grid-template-columns: 1fr; }
   .ficha { grid-template-columns: 1fr; }
+  .cuenta__item { grid-template-columns: 1fr; }
+  .cuenta__acciones { justify-content: flex-start; }
   .ficha__aside { position: static; }
   .auth { grid-template-columns: 1fr; }
   .auth__side { min-height: 300px; }

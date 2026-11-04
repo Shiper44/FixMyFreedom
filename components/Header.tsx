@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icons";
 
-export function Header({ solid = false }: { solid?: boolean }) {
+export function Header({ solid = false, conectado = false }: { solid?: boolean; conectado?: boolean }) {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
@@ -54,7 +54,11 @@ export function Header({ solid = false }: { solid?: boolean }) {
           <li><Link href="/#precios">Precios</Link></li>
           <li><Link href="/#contacto">Contacto</Link></li>
         </ul>
-        <Link className="btn btn--amber nav__login" href="/login">Iniciar sesión</Link>
+        {conectado ? (
+          <Link className="btn btn--amber nav__login" href="/cuenta">Mi cuenta</Link>
+        ) : (
+          <Link className="btn btn--amber nav__login" href="/login">Iniciar sesión</Link>
+        )}
       </nav>
     </header>
   );

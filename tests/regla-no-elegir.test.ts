@@ -75,7 +75,7 @@ describe("sin datos de perfil", () => {
       [
         "id", "email", "nombre", "stripeCustomerId", "esAdmin", "creadoEn",
         "avisoWeb", "avisoEmail", "avisoWhatsapp", "avisoTelegram", "telefonoWhatsapp", "telegramChatId",
-        "suscripciones", "aceptaciones", "notificaciones",
+        "suscripciones", "aceptaciones", "notificaciones", "sesiones",
       ].sort(),
     );
   });

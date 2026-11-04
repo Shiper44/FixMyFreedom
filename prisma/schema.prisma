@@ -34,6 +34,7 @@ model Usuario {
   suscripciones Suscripcion[]
   aceptaciones  AceptacionDisclaimer[]
   notificaciones Notificacion[]
+  sesiones      Sesion[]
 
   @@map("usuarios")
 }
@@ -144,6 +145,8 @@ model Suscripcion {
   inicioEn             DateTime?         @map("inicio_en")
   periodoFinEn         DateTime?         @map("periodo_fin_en")
   canceladaEn          DateTime?         @map("cancelada_en")
+  // true si la persona ha pedido cancelar y la suscripción termina al final del periodo pagado.
+  cancelaAlFinal       Boolean           @default(false) @map("cancela_al_final")
   creadaEn             DateTime          @default(now()) @map("creada_en")
   actualizadaEn        DateTime          @updatedAt @map("actualizada_en")
 
@@ -218,4 +221,44 @@ model RentabilidadHistorica {
 
   @@unique([carteraId, anio])
   @@map("cartera_rentabilidades")
+}
+
+// Sesiones de usuario. La cookie solo guarda un token aleatorio; aquí se guarda su hash.
+model Sesion {
+  id        String   @id @default(cuid())
+  usuarioId String   @map("usuario_id")
+  tokenHash String   @unique @map("token_hash")
+  creadaEn  DateTime @default(now()) @map("creada_en")
+  expiraEn  DateTime @map("expira_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@map("sesiones")
+}
+
+// Enlaces de acceso de un solo uso enviados por correo (inicio de sesión sin contraseña).
+model TokenAcceso {
+  id        String    @id @default(cuid())
+  email     String
+  nombre    String?
+  tokenHash String    @unique @map("token_hash")
+  creadoEn  DateTime  @default(now()) @map("creado_en")
+  expiraEn  DateTime  @map("expira_en")
+  usadoEn   DateTime? @map("usado_en")
+
+  @@index([email, creadoEn])
+  @@map("tokens_acceso")
+}
+
+// Eventos de Stripe ya procesados (para no procesar dos veces el mismo evento).
+model StripeEvento {
+  id          String   @id // id del evento en Stripe (evt_...)
+  tipo        String
+  procesadoEn DateTime @default(now()) @map("procesado_en")
+  // Eventos que requieren revisión manual (disputas, reembolsos, alertas de fraude).
+  revisar     Boolean  @default(false)
+  nota        String?
+
+  @@map("stripe_eventos")
 }

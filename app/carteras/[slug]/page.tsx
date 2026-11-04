@@ -5,7 +5,11 @@ import { Distribucion } from "@/components/Distribucion";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { RiskScale } from "@/components/RiskScale";
-import { AVISOS } from "@/content/legal";
+import { FormularioSuscripcion } from "@/components/Formularios";
+import { AVISOS, DISCLAIMER_ACEPTACION } from "@/content/legal";
+import { precioStripe } from "@/lib/config";
+import { prisma } from "@/lib/db";
+import { usuarioActual } from "@/lib/sesion";
 import { formatearPct, formatearPrecio, obtenerCarteraPublica } from "@/lib/carteras";
 
 export const dynamic = "force-dynamic";
@@ -22,11 +26,16 @@ const fecha = new Intl.DateTimeFormat("es-ES", { dateStyle: "long", timeZone: "E
 export default async function FichaCartera({ params }: Props) {
   const c = await obtenerCarteraPublica((await params).slug);
   if (!c) notFound();
+  const usuario = await usuarioActual();
+  const suscripcion = usuario
+    ? await prisma.suscripcion.findFirst({ where: { usuarioId: usuario.id, cartera: { slug: c.slug } } })
+    : null;
+  const vigente = suscripcion?.estado === "activa" || suscripcion?.estado === "impagada";
   const simulada = c.rentabilidades.some((r) => r.simulada);
 
   return (
     <>
-      <Header solid />
+      <Header solid conectado={Boolean(usuario)} />
       <main id="contenido" className="page">
         <div className="wrap">
           <div className="page__head">
@@ -86,9 +95,26 @@ export default async function FichaCartera({ params }: Props) {
                 <div><dt>Avisos</dt><dd>Web, WhatsApp, Telegram y correo</dd></div>
               </dl>
               <p className="plan__desc">{AVISOS.contenidoGenerico}</p>
-              <div className="plan__actions">
-                <span className="btn btn--outline" aria-disabled="true">Suscripción disponible próximamente</span>
-              </div>
+              {vigente ? (
+                <p className="aviso-cuenta">
+                  Ya tienes una suscripción a esta cartera. <Link href="/cuenta">Gestionarla en tu cuenta</Link>
+                </p>
+              ) : !precioStripe(c.slug) ? (
+                <p className="aviso-cuenta">El pago de esta cartera todavía no está disponible.</p>
+              ) : usuario ? (
+                <FormularioSuscripcion
+                  slug={c.slug}
+                  textoAceptacion={DISCLAIMER_ACEPTACION.texto}
+                  versionTexto={DISCLAIMER_ACEPTACION.version}
+                />
+              ) : (
+                <div className="plan__actions">
+                  <Link className="btn btn--amber" href={`/login?volver=${encodeURIComponent(`/carteras/${c.slug}#suscripcion`)}`}>
+                    Iniciar sesión para suscribirme
+                  </Link>
+                  <p className="aviso-cuenta">Si no tienes cuenta, se crea al entrar con tu correo.</p>
+                </div>
+              )}
             </aside>
           </div>
         </div>

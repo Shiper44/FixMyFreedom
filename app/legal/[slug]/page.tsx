@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { usuarioActual } from "@/lib/sesion";
 import { DOCUMENTOS, ESTADO_REVISION, documentoLegal } from "@/content/legal";
 
 type Props = { params: Promise<{ slug: string }> };
+
+export const dynamic = "force-dynamic";
 
 export function generateStaticParams() {
   return DOCUMENTOS.map((d) => ({ slug: d.slug }));
@@ -18,9 +21,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function DocumentoLegalPage({ params }: Props) {
   const doc = documentoLegal((await params).slug);
   if (!doc) notFound();
+  const conectado = Boolean(await usuarioActual());
   return (
     <>
-      <Header solid />
+      <Header solid conectado={conectado} />
       <main id="contenido" className="page">
         <div className="wrap legal-doc">
           <div className="page__head">

@@ -2,6 +2,7 @@ import { ComparadorCarteras } from "@/components/ComparadorCarteras";
 import { Campo, DemoForm } from "@/components/DemoForm";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { usuarioActual } from "@/lib/sesion";
 import { Icon } from "@/components/Icons";
 import { AUTOR, AVISOS } from "@/content/legal";
 import { listarCarterasPublicas } from "@/lib/carteras";
@@ -10,10 +11,11 @@ export const dynamic = "force-dynamic";
 
 export default async function Inicio() {
   const carteras = await listarCarterasPublicas();
+  const conectado = Boolean(await usuarioActual());
 
   return (
     <>
-      <Header />
+      <Header conectado={conectado} />
       <main id="contenido">
         <section className="hero" aria-labelledby="hero-title">
           <Icon name="logo-m" className="hero__mark" />
