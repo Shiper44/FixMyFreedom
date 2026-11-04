@@ -17,7 +17,6 @@ export default defineConfig({
       STRIPE_PRICE_CONSERVADORA: "price_test_conservadora",
       STRIPE_PRICE_MODERADA: "price_test_moderada",
       STRIPE_PRICE_DINAMICA: "price_test_dinamica",
-      STRIPE_TAX_ENABLED: "false",
       STRIPE_PORTAL_CONFIGURATION: "",
       APP_URL: "https://fixmyfreedom.test",
     },

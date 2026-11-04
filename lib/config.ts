@@ -29,15 +29,6 @@ export function appUrl(): string {
   return (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
 }
 
-/**
- * Stripe Tax. Solo se activa con STRIPE_TAX_ENABLED=true, y solo debe activarse
- * cuando la cuenta tenga una dirección de sede y al menos un registro fiscal
- * activo en Stripe (sin registro, Stripe no cobra impuestos y no avisa).
- */
-export function impuestosActivados(): boolean {
-  return process.env.STRIPE_TAX_ENABLED === "true";
-}
-
 export function esProduccion(): boolean {
   return process.env.NODE_ENV === "production";
 }

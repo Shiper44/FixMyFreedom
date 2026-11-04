@@ -23,5 +23,5 @@ export function getStripe(): Stripe {
   return cliente;
 }
 
-/** Etiqueta del flujo de Checkout para distinguirlo en el panel de Stripe. */
-export const INTEGRACION_CHECKOUT = "fmf-carteras-modelo-qhvtzrkm";
+/** Identificador del flujo de Checkout configurado en Stripe Checkout Studio. */
+export const INTEGRACION_CHECKOUT = "hosted_web_0002";

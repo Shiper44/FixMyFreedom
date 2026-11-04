@@ -101,22 +101,20 @@ describe("sesión de Checkout", () => {
     expect(llamadas.clientes).toBe(1);
   });
 
-  it("con impuestos desactivados no envía automatic_tax (evita creer que se cobra IVA sin registro)", async () => {
+  it("usa exactamente los parámetros configurados en Stripe Checkout Studio", async () => {
     const { stripe, llamadas } = stripeFalso();
     await iniciarCheckout({ stripe, usuario: await crearUsuario(), slug: "moderada", aceptaDisclaimer: true, versionTexto: version });
-    expect(llamadas.checkout[0]).not.toHaveProperty("automatic_tax");
-  });
-
-  it("con STRIPE_TAX_ENABLED=true activa Stripe Tax y recoge la dirección", async () => {
-    const { stripe, llamadas } = stripeFalso();
-    process.env.STRIPE_TAX_ENABLED = "true";
-    try {
-      await iniciarCheckout({ stripe, usuario: await crearUsuario(), slug: "moderada", aceptaDisclaimer: true, versionTexto: version });
-    } finally {
-      process.env.STRIPE_TAX_ENABLED = "false";
-    }
-    expect(llamadas.checkout[0].automatic_tax).toEqual({ enabled: true });
-    expect(llamadas.checkout[0].customer_update).toMatchObject({ address: "auto" });
+    expect(llamadas.checkout[0]).toMatchObject({
+      ui_mode: "hosted_page",
+      billing_address_collection: "auto",
+      phone_number_collection: { enabled: false },
+      automatic_tax: { enabled: false },
+      allow_promotion_codes: false,
+      payment_method_collection: "always",
+      submit_type: "auto",
+      integration_identifier: "hosted_web_0002",
+      origin_context: "web",
+    });
   });
 
   it("no permite pagar dos veces la misma cartera ni carteras inexistentes o sin precio", async () => {

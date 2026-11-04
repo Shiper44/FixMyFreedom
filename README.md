@@ -51,9 +51,9 @@ Los price IDs solo están en variables de entorno.
    `scripts/simular-ciclo-stripe.ts` crea, cancela o hace fallar suscripciones de prueba.
    Si el servidor sale a internet por un proxy (`HTTPS_PROXY`), arranca Node con
    `NODE_USE_ENV_PROXY=1`.
-4. **Stripe Tax**: déjalo en `STRIPE_TAX_ENABLED="false"` hasta tener en Stripe la dirección
-   de la sede y al menos un registro fiscal activo. Sin registro, Stripe no cobra impuestos
-   y no avisa. El código fiscal del producto está pendiente de confirmar con el asesor.
+4. **Stripe Tax**: desactivado en Checkout Studio (`automatic_tax: { enabled: false }`).
+   Antes de activarlo hace falta al menos un registro fiscal activo en Stripe: sin registro,
+   Stripe no cobra impuestos y no avisa. Ver [STRIPE_INTEGRATION_TODO.md](STRIPE_INTEGRATION_TODO.md).
 5. **Facturas**: Stripe genera una factura por cada cuota; quien se suscribe las descarga
    desde el portal («Facturas y método de pago» en su cuenta).
 

@@ -3,7 +3,7 @@
 import type Stripe from "stripe";
 import type { EstadoSuscripcion, Usuario } from "@prisma/client";
 import { DISCLAIMER_ACEPTACION } from "@/content/legal";
-import { appUrl, carteraDePrecio, impuestosActivados, precioStripe } from "./config";
+import { appUrl, carteraDePrecio, precioStripe } from "./config";
 import { prisma } from "./db";
 import { INTEGRACION_CHECKOUT } from "./stripe";
 
@@ -63,28 +63,30 @@ export async function iniciarCheckout(params: {
 
   const cliente = await clienteStripe(stripe, usuario);
   const metadata = { usuario_id: usuario.id, cartera_slug: slug, aceptacion_id: aceptacion.id };
-  const impuestos = impuestosActivados();
 
   const sesion = await stripe.checkout.sessions.create(
     {
+      // Parámetros configurados en Stripe Checkout Studio (ver STRIPE_INTEGRATION_TODO.md).
+      ui_mode: "hosted_page",
+      billing_address_collection: "auto",
+      phone_number_collection: { enabled: false },
+      automatic_tax: { enabled: false },
+      allow_promotion_codes: false,
+      payment_method_collection: "always",
+      submit_type: "auto",
+      integration_identifier: INTEGRACION_CHECKOUT,
+      origin_context: "web",
+      // Parámetros propios de la integración.
       mode: "subscription",
-      customer: cliente,
-      client_reference_id: usuario.id,
       line_items: [{ price: precio, quantity: 1 }],
       success_url: `${appUrl()}/cuenta?pago=completado&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl()}/carteras/${slug}#suscripcion`,
-      locale: "es",
+      // Necesarios para asociar el pago al usuario, a la cartera y a la aceptación
+      // de la casilla previa al pago (lo usan los webhooks).
+      customer: cliente,
+      client_reference_id: usuario.id,
       metadata,
       subscription_data: { metadata },
-      integration_identifier: INTEGRACION_CHECKOUT,
-      ...(impuestos
-        ? {
-            automatic_tax: { enabled: true },
-            customer_update: { address: "auto", name: "auto" },
-            billing_address_collection: "required",
-            tax_id_collection: { enabled: true },
-          }
-        : {}),
     },
     { idempotencyKey: `checkout-${aceptacion.id}` },
   );
