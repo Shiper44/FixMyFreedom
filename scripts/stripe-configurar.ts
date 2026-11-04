@@ -5,9 +5,9 @@
 //   npx tsx scripts/stripe-configurar.ts
 //
 // Al terminar imprime las variables de entorno que hay que añadir a .env.
-import Stripe from "stripe";
 import { PrismaClient } from "@prisma/client";
 import { CARTERAS_EJEMPLO } from "../prisma/datos-ejemplo";
+import { crearClienteStripe } from "../lib/stripe";
 import { EVENTOS_STRIPE } from "../lib/webhook-stripe";
 
 // Código fiscal de Stripe para servicios prestados por vía electrónica.
@@ -19,7 +19,7 @@ async function main() {
   if (!clave?.startsWith("sk_test_") && !clave?.startsWith("rk_test_")) {
     throw new Error("Este script solo se ejecuta con una clave de TEST (sk_test_ o rk_test_).");
   }
-  const stripe = new Stripe(clave);
+  const stripe = crearClienteStripe(clave);
   const prisma = new PrismaClient();
   const lineasEnv: string[] = [];
 
@@ -55,8 +55,12 @@ async function main() {
   // Portal del cliente: facturas, método de pago, datos de facturación y cancelación
   // al final del periodo. NO permite cambiar de cartera (cambiar de cartera exige
   // volver a marcar la casilla de aceptación).
-  const portal = await stripe.billingPortal.configurations.create({
-    business_profile: { headline: "Gestiona tus suscripciones a las carteras modelo de FixMyFreedom" },
+  const MARCA_PORTAL = "scripts/stripe-configurar.ts";
+  const portales = await stripe.billingPortal.configurations.list({ active: true, limit: 100 });
+  const portal =
+    portales.data.find((p) => p.metadata?.creado_por === MARCA_PORTAL) ??
+    (await stripe.billingPortal.configurations.create({
+    business_profile: { headline: "Tus suscripciones a las carteras modelo" },
     features: {
       invoice_history: { enabled: true },
       payment_method_update: { enabled: true },
@@ -64,8 +68,8 @@ async function main() {
       subscription_cancel: { enabled: true, mode: "at_period_end", proration_behavior: "none" },
       subscription_update: { enabled: false },
     },
-    metadata: { creado_por: "scripts/stripe-configurar.ts" },
-  });
+    metadata: { creado_por: MARCA_PORTAL },
+  }));
   lineasEnv.push(`STRIPE_PORTAL_CONFIGURATION="${portal.id}"`);
 
   console.log("\nAñade estas líneas a .env:\n");

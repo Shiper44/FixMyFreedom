@@ -46,6 +46,11 @@ Los price IDs solo están en variables de entorno.
 
    Copia el `whsec_...` que muestra en `STRIPE_WEBHOOK_SECRET`. En producción, crea el
    endpoint en el panel de Stripe con los eventos de `EVENTOS_STRIPE` (`lib/webhook-stripe.ts`).
+   Si no puedes usar la CLI, `scripts/reenviar-eventos-stripe.ts` reenvía al webhook local los
+   eventos reales de Stripe, firmados con tu `STRIPE_WEBHOOK_SECRET`, y
+   `scripts/simular-ciclo-stripe.ts` crea, cancela o hace fallar suscripciones de prueba.
+   Si el servidor sale a internet por un proxy (`HTTPS_PROXY`), arranca Node con
+   `NODE_USE_ENV_PROXY=1`.
 4. **Stripe Tax**: déjalo en `STRIPE_TAX_ENABLED="false"` hasta tener en Stripe la dirección
    de la sede y al menos un registro fiscal activo. Sin registro, Stripe no cobra impuestos
    y no avisa. El código fiscal del producto está pendiente de confirmar con el asesor.
