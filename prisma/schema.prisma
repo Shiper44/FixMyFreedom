@@ -1,0 +1,221 @@
+// Esquema de datos de FixMyFreedom.
+//
+// Regla de cumplimiento: la tabla `usuarios` NO guarda datos de perfil
+// (edad, ingresos, objetivos, tolerancia al riesgo, respuestas de cuestionarios...).
+// Ninguna parte del sistema puede elegir, ordenar o destacar una cartera
+// en función del usuario. Un test lo comprueba (tests/regla-no-elegir.test.ts).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  nombre           String
+  stripeCustomerId String?   @unique @map("stripe_customer_id")
+  esAdmin          Boolean   @default(false) @map("es_admin")
+  creadoEn         DateTime  @default(now()) @map("creado_en")
+
+  // Canales por los que el usuario quiere recibir los avisos de cambio.
+  // Son datos de contacto, no de perfil: no alteran el contenido del aviso.
+  avisoWeb          Boolean  @default(true) @map("aviso_web")
+  avisoEmail        Boolean  @default(true) @map("aviso_email")
+  avisoWhatsapp     Boolean  @default(false) @map("aviso_whatsapp")
+  avisoTelegram     Boolean  @default(false) @map("aviso_telegram")
+  telefonoWhatsapp  String?  @map("telefono_whatsapp")
+  telegramChatId    String?  @map("telegram_chat_id")
+
+  suscripciones Suscripcion[]
+  aceptaciones  AceptacionDisclaimer[]
+  notificaciones Notificacion[]
+
+  @@map("usuarios")
+}
+
+model Cartera {
+  id             String  @id @default(cuid())
+  slug           String  @unique
+  nombre         String
+  descripcion    String
+  // Escala 1 (menor riesgo) a 7 (mayor riesgo).
+  nivelRiesgo    Int     @map("nivel_riesgo")
+  horizonte      String
+  metodologia    String
+  // Orden de presentación fijo, de menor a mayor riesgo. Igual para todo el mundo.
+  orden          Int     @unique
+  precioCentimos Int     @map("precio_centimos")
+  // Se rellena desde variables de entorno (STRIPE_PRICE_*), nunca desde el código.
+  stripePriceId  String? @unique @map("stripe_price_id")
+  activa         Boolean @default(true)
+
+  versiones      CarteraVersion[]
+  cambios        CambioCartera[]
+  suscripciones  Suscripcion[]
+  aceptaciones   AceptacionDisclaimer[]
+  rentabilidades RentabilidadHistorica[]
+
+  @@map("carteras")
+}
+
+// Cada cambio crea una versión nueva. Las versiones y sus posiciones son
+// inmutables: un trigger de la base de datos impide modificarlas o borrarlas.
+model CarteraVersion {
+  id               String   @id @default(cuid())
+  carteraId        String   @map("cartera_id")
+  numero           Int
+  fechaVigencia    DateTime @map("fecha_vigencia")
+  notaMetodologica String   @map("nota_metodologica")
+  creadaEn         DateTime @default(now()) @map("creada_en")
+
+  cartera    Cartera           @relation(fields: [carteraId], references: [id])
+  posiciones CarteraPosicion[]
+
+  cambioComoAnterior CambioCartera[] @relation("VersionAnterior")
+  cambioComoNueva    CambioCartera?  @relation("VersionNueva")
+
+  @@unique([carteraId, numero])
+  @@index([carteraId, fechaVigencia])
+  @@map("cartera_versiones")
+}
+
+enum ClaseActivo {
+  renta_variable
+  renta_fija
+  monetario
+  materias_primas
+  inmobiliario
+
+  @@map("clase_activo")
+}
+
+model CarteraPosicion {
+  id          String      @id @default(cuid())
+  versionId   String      @map("version_id")
+  instrumento String
+  isin        String
+  claseActivo ClaseActivo @map("clase_activo")
+  pesoPct     Decimal     @map("peso_pct") @db.Decimal(5, 2)
+
+  version CarteraVersion @relation(fields: [versionId], references: [id])
+
+  @@unique([versionId, isin])
+  @@map("cartera_posiciones")
+}
+
+model CambioCartera {
+  id                String   @id @default(cuid())
+  carteraId         String   @map("cartera_id")
+  versionAnteriorId String?  @map("version_anterior_id")
+  versionNuevaId    String   @unique @map("version_nueva_id")
+  resumen           String
+  justificacion     String
+  publicadoEn       DateTime @default(now()) @map("publicado_en")
+
+  cartera         Cartera         @relation(fields: [carteraId], references: [id])
+  versionAnterior CarteraVersion? @relation("VersionAnterior", fields: [versionAnteriorId], references: [id])
+  versionNueva    CarteraVersion  @relation("VersionNueva", fields: [versionNuevaId], references: [id])
+  notificaciones  Notificacion[]
+
+  @@index([carteraId, publicadoEn])
+  @@map("cambios_cartera")
+}
+
+enum EstadoSuscripcion {
+  incompleta
+  activa
+  impagada
+  cancelada
+
+  @@map("estado_suscripcion")
+}
+
+model Suscripcion {
+  id                   String            @id @default(cuid())
+  usuarioId            String            @map("usuario_id")
+  carteraId            String            @map("cartera_id")
+  stripeSubscriptionId String?           @unique @map("stripe_subscription_id")
+  estado               EstadoSuscripcion @default(incompleta)
+  inicioEn             DateTime?         @map("inicio_en")
+  periodoFinEn         DateTime?         @map("periodo_fin_en")
+  canceladaEn          DateTime?         @map("cancelada_en")
+  creadaEn             DateTime          @default(now()) @map("creada_en")
+  actualizadaEn        DateTime          @updatedAt @map("actualizada_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  cartera Cartera @relation(fields: [carteraId], references: [id])
+
+  @@unique([usuarioId, carteraId])
+  @@map("suscripciones")
+}
+
+model AceptacionDisclaimer {
+  id           String   @id @default(cuid())
+  usuarioId    String   @map("usuario_id")
+  carteraId    String   @map("cartera_id")
+  versionTexto String   @map("version_texto")
+  aceptadoEn   DateTime @default(now()) @map("aceptado_en")
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  cartera Cartera @relation(fields: [carteraId], references: [id])
+
+  @@index([usuarioId, carteraId])
+  @@map("aceptaciones_disclaimer")
+}
+
+enum CanalAviso {
+  web
+  email
+  whatsapp
+  telegram
+
+  @@map("canal_aviso")
+}
+
+enum EstadoNotificacion {
+  pendiente
+  enviada
+  fallida
+  omitida
+
+  @@map("estado_notificacion")
+}
+
+model Notificacion {
+  id        String             @id @default(cuid())
+  cambioId  String             @map("cambio_id")
+  usuarioId String             @map("usuario_id")
+  canal     CanalAviso
+  estado    EstadoNotificacion @default(pendiente)
+  error     String?
+  creadaEn  DateTime           @default(now()) @map("creada_en")
+  enviadoEn DateTime?          @map("enviado_en")
+  leidoEn   DateTime?          @map("leido_en")
+
+  cambio  CambioCartera @relation(fields: [cambioId], references: [id])
+  usuario Usuario       @relation(fields: [usuarioId], references: [id])
+
+  @@unique([cambioId, usuarioId, canal])
+  @@index([usuarioId, canal, leidoEn])
+  @@map("notificaciones")
+}
+
+// Rentabilidad anual de la cartera modelo. Mientras no haya histórico real,
+// los datos son simulados y `simulada` vale true; la web lo indica siempre.
+model RentabilidadHistorica {
+  id              String  @id @default(cuid())
+  carteraId       String  @map("cartera_id")
+  anio            Int
+  rentabilidadPct Decimal @map("rentabilidad_pct") @db.Decimal(6, 2)
+  simulada        Boolean @default(true)
+
+  cartera Cartera @relation(fields: [carteraId], references: [id])
+
+  @@unique([carteraId, anio])
+  @@map("cartera_rentabilidades")
+}
